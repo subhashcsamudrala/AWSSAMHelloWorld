@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'FoodOrder
+
+  Sample SAM Template for Book store
+
+  '
+Resources:
+  StockTradingStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: ..\..\statemachine\stockTrader.asl.yaml
+      DefinitionSubstitutions:
+        CheckInventoryArn:
+          Fn::GetAtt:
+          - CheckInventory
+          - Arn
+        CalculateTotalArn:
+          Fn::GetAtt:
+          - CalculateTotal
+          - Arn
+      Events:
+        HourlyTradingSchedule:
+          Type: Schedule
+          Properties:
+            Description: Schedule to run the stock trading state machine every hour
+            Enabled: false
+            Schedule: rate(1 hour)
+      Policies:
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: CheckInventory
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: CalculateTotal
+  CheckInventory:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CheckInventory
+      Handler: StockChecker::StockChecker.BookInventory::CheckStockFunction
+      Runtime: dotnetcore3.1
+  CalculateTotal:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CalculateTotal
+      Handler: StockSeller::StockSeller.Function::CalculateTotalFunction
+      Runtime: dotnetcore3.1
+Outputs:
+  StockTradingStateMachineArn:
+    Description: Stock Trading State machine ARN
+    Value:
+      Ref: StockTradingStateMachine
+  StockTradingStateMachineRoleArn:
+    Description: IAM Role created for Stock Trading State machine based on the specified
+      SAM Policy Templates
+    Value:
+      Fn::GetAtt:
+      - StockTradingStateMachineRole
+      - Arn

@@ -1,0 +1,25 @@
+Comment: A state machine that does mock book buying.
+StartAt: checkInventory
+States:
+  checkInventory:
+    Type: Task
+    Resource: "${CheckInventoryArn}"
+    Catch:
+      - ErrorEquals: [BookNotFound]
+        Next: BookNotFoundError
+      - ErrorEquals: [BookOutOfStock]
+        Next: BookOutOfStockError
+    Next: calculateTotal
+  calculateTotal:
+    Type: Task
+    Resource: "${CalculateTotalArn}"
+    End: true
+  BookNotFoundError:
+    Type: Pass
+    Result: "No such book available"
+    End: true
+  BookOutOfStockError:
+    Type: Pass
+    Result: "Sorry! Book out of stock"
+    End: true
+
