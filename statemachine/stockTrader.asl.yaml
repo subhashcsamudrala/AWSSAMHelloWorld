@@ -5,10 +5,15 @@ States:
     Type: Task
     Resource: "${CheckInventoryArn}"
     Catch:
-      - ErrorEquals: [BookNotFound]
+      - ErrorEquals: 
+          - BookNotFoundException
         Next: BookNotFoundError
-      - ErrorEquals: [BookOutOfStock]
-        Next: BookOutOfStockError
+      - ErrorEquals: 
+          - BookOutOfStockException
+        Next: BookOutOfStockError        
+      - ErrorEquals: 
+          - States.ALL
+        Next: GeneralError        
     Next: calculateTotal
   calculateTotal:
     Type: Task
@@ -22,4 +27,8 @@ States:
     Type: Pass
     Result: "Sorry! Book out of stock"
     End: true
+  GeneralError:
+    Type: Pass
+    Result: "Sorry! Unable to process due to some error"
+    End: true    
 

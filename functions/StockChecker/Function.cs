@@ -25,7 +25,7 @@ namespace StockChecker
 
     public class BookInventory
     {
-        
+
         private static readonly Random rand = new Random((Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
         private readonly IAmazonDynamoDB _dynamoDB;
         //public BookInventory() : this(new AmazonDynamoDBClient()) { }
@@ -69,7 +69,6 @@ namespace StockChecker
             //};
             try
             {
-                context.Logger.LogLine($"one");
                 string table = "bookTable";
                 GetItemRequest getItemRequest = new GetItemRequest()
                 {
@@ -89,9 +88,10 @@ namespace StockChecker
                 //var response = await books.GetItemAsync(bookTable.bookId).ConfigureAwait(false);
 
 
-     
+
 
                 //
+
 
                 var request = new QueryRequest
                 {
@@ -100,7 +100,6 @@ namespace StockChecker
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue> {
                     {":v_Id", new AttributeValue { S =  bookTable.bookId }}}
                 };
-                context.Logger.LogLine($"two");
                 if (_dynamoDB == null)
                     throw new ArgumentNullException(nameof(_dynamoDB));
                 else
@@ -117,27 +116,26 @@ namespace StockChecker
                         string empName = emp.S;
                         context.Logger.LogLine($"empName: {empName}");
                     }
-                    
+
                 }
                 var response = await _dynamoDB.QueryAsync(request);
-                context.Logger.LogLine($"three");
                 foreach (Dictionary<string, AttributeValue> item in response.Items)
                 {
                     // Process the result.
 
                 }
+                if (response.Items == null || response.Items.Count < 1)
+                {
+                    throw new BookNotFoundException() { Source = "BookNotFound" };
+                }
                 var book = response.Items[0];
                 if (IsBookAvailable(Convert.ToInt32(response.Items[0]["quantity"].S), Convert.ToInt32(bookTable.quantity)))
                 {
-                    context.Logger.LogLine($"four");
                     return book;
                 }
                 else
                 {
-                    context.Logger.LogLine($"five");
-                    var bookOutOfStockError = new Exception("The book is out of stock");
-                    bookOutOfStockError.Source = "BookOutOfStock";
-                    throw bookOutOfStockError;
+                    throw new BookOutOfStockException() { Source = "BookOutOfStock" };
                 }
             }
             catch (Exception ex)
@@ -145,13 +143,15 @@ namespace StockChecker
                 context.Logger.LogLine($"Error occurred in CheckStockFunction. Error is: {ex.StackTrace}");
                 if (ex.Source == "BookOutOfStock")
                 {
-                    throw ex;
+                    throw new BookOutOfStockException();
+                }
+                else if (ex.Source == "BookNotFound")
+                {
+                    throw new BookNotFoundException();
                 }
                 else
                 {
-                    var bookNotFoundError = new Exception("BookNotFound");
-                    bookNotFoundError.Source = "BookNotFound";
-                    throw bookNotFoundError;
+                    throw ex;
                 }
             }
         }
@@ -161,4 +161,19 @@ namespace StockChecker
             return availableQuantity - requestedQuantity > 0;
         }
     }
+
+    public class BookNotFoundException : Exception
+    {
+        public BookNotFoundException() { }
+        public BookNotFoundException(string message) : base(message) { }
+        public BookNotFoundException(string message, Exception inner) : base(message, inner) { }
+    }
+
+    public class BookOutOfStockException : Exception
+    {
+        public BookOutOfStockException() { }
+        public BookOutOfStockException(string message) : base(message) { }
+        public BookOutOfStockException(string message, Exception inner) : base(message, inner) { }
+    }
+
 }

@@ -13,7 +13,7 @@ namespace StockChecker.Tests
             var context = new TestLambdaContext();
       
             var function = new BookInventory();
-            var response = function.CheckStockFunction(new BookTable { bookId = "1", quantity = "4" }, context);
+            var response = function.CheckStockFunction(new BookTable { bookId = "2", quantity = "4" }, context);
 
     }
   }

@@ -32,6 +32,7 @@ Resources:
       CodeUri: ./functions/StockChecker/
       Handler: StockChecker::StockChecker.BookInventory::CheckStockFunction
       Runtime: dotnetcore3.1
+      Timeout: 60
 
   CalculateTotal:
     Type: AWS::Serverless::Function
