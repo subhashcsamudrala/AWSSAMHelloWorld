@@ -13,11 +13,32 @@ States:
         Next: BookOutOfStockError        
       - ErrorEquals: 
           - States.ALL
-        Next: GeneralError        
+        Next: GeneralError   
+    ResultPath: "$"     
     Next: calculateTotal
   calculateTotal:
     Type: Task
     Resource: "${CalculateTotalArn}"
+    ResultPath: "$.TotalPrice"
+    Next: isRedeemNeeded
+  isRedeemNeeded:
+    Type: Choice
+    Choices:
+      - Variable: $.redeem
+        BooleanEquals: true
+        Next: RedeemPoints
+    Default:  BillCustomer
+  RedeemPoints:
+    Type: Task
+    Resource: "${RedeemPointsArn}"  
+    Next: BillCustomer
+  BillCustomer:
+    Type: Task
+    Resource: "${BillCustomerArn}"
+    Next: PrepareOrder
+  PrepareOrder:
+    Type: Task
+    Resource: "${PrepareOrderArn}"
     End: true
   BookNotFoundError:
     Type: Pass

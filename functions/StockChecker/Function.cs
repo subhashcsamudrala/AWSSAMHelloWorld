@@ -21,6 +21,7 @@ namespace StockChecker
     {
         public string bookId;
         public string quantity;
+        public string price;
     }
 
     public class BookInventory
@@ -60,7 +61,7 @@ namespace StockChecker
             };
         }
 
-        public async Task<Dictionary<string, AttributeValue>> CheckStockFunction(BookTable bookTable, ILambdaContext context)
+        public async Task<ApplicationService> CheckStockFunction(BookTable bookTable, ILambdaContext context)
         {
             //return new Dictionary<string, AttributeValue>{
             //    {
@@ -131,7 +132,16 @@ namespace StockChecker
                 var book = response.Items[0];
                 if (IsBookAvailable(Convert.ToInt32(response.Items[0]["quantity"].S), Convert.ToInt32(bookTable.quantity)))
                 {
-                    return book;
+                    ApplicationService applicationService = new ApplicationService()
+                    {
+                        bookTable = new BookTable
+                        {
+                            bookId = bookTable.bookId,
+                            quantity = bookTable.quantity,
+                            price = response.Items[0]["price"].S
+                        }
+                    };
+                    return applicationService;
                 }
                 else
                 {
@@ -159,6 +169,12 @@ namespace StockChecker
         public bool IsBookAvailable(int availableQuantity, int requestedQuantity)
         {
             return availableQuantity - requestedQuantity > 0;
+        }
+
+        public int Calculate(Dictionary<string, AttributeValue> book, int requestedQuantity)
+        {
+            var total = Convert.ToInt32(book["price"].S) * requestedQuantity;
+            return total;
         }
     }
 

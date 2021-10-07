@@ -1,4 +1,5 @@
 using Amazon.Lambda.Core;
+using StockChecker;
 using System;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -55,9 +56,10 @@ namespace StockSeller
             };
         }
 
-        public string CalculateTotalFunction(ILambdaContext context)
+        public int CalculateTotalFunction(ApplicationService applicationService, ILambdaContext context)
         {
-            return "from Calculate invoice";
+            var total = Convert.ToInt32(applicationService.bookTable.quantity) * Convert.ToInt32(applicationService.bookTable.price);
+            return total;
         }
     }
 }
