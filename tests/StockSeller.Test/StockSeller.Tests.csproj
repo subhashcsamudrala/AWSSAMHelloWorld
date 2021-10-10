@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.TestUtilities" Version="1.2.0" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.0.73" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.1.22" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />

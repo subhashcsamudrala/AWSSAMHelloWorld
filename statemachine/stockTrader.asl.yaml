@@ -31,14 +31,26 @@ States:
   RedeemPoints:
     Type: Task
     Resource: "${RedeemPointsArn}"  
+    Catch:
+      - ErrorEquals: 
+          - States.ALL
+        Next: GeneralError
+    ResultPath: "$.OrderTotal"
     Next: BillCustomer
   BillCustomer:
     Type: Task
     Resource: "${BillCustomerArn}"
+    ResultPath: "$.BillResponse"
     Next: PrepareOrder
   PrepareOrder:
     Type: Task
-    Resource: "${PrepareOrderArn}"
+    Resource: arn:aws:states:::sql:sendMessage.waitForTaskToken
+    Parameters:
+      QueueUrl: https://sqs.ap-southeast-2.amazonaws.com/746358375443/OrdersQueue
+      MessageBody:
+        Input.$:  "$"
+        Token.$:  "$$.Task.Token" #From the context object $$
+    ResultPath: "$.courierStatus"
     End: true
   BookNotFoundError:
     Type: Pass

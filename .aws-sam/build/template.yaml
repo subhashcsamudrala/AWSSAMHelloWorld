@@ -19,6 +19,18 @@ Resources:
           Fn::GetAtt:
           - CalculateTotal
           - Arn
+        RedeemPointsArn:
+          Fn::GetAtt:
+          - RedeemPoints
+          - Arn
+        BillCustomerArn:
+          Fn::GetAtt:
+          - BillCustomer
+          - Arn
+        PrepareOrderArn:
+          Fn::GetAtt:
+          - PrepareOrder
+          - Arn
       Events:
         HourlyTradingSchedule:
           Type: Schedule
@@ -33,6 +45,15 @@ Resources:
       - LambdaInvokePolicy:
           FunctionName:
             Ref: CalculateTotal
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: RedeemPoints
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: BillCustomer
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: PrepareOrder
   CheckInventory:
     Type: AWS::Serverless::Function
     Properties:
@@ -46,6 +67,28 @@ Resources:
       CodeUri: CalculateTotal
       Handler: StockSeller::StockSeller.Function::CalculateTotalFunction
       Runtime: dotnetcore3.1
+      Timeout: 60
+  RedeemPoints:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: RedeemPoints
+      Handler: StockSeller::StockSeller.Function::RedeemPointsFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60
+  BillCustomer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BillCustomer
+      Handler: StockSeller::StockSeller.Function::BillCustomerFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60
+  PrepareOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: PrepareOrder
+      Handler: StockSeller::StockSeller.Function::RedeemPointsFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60
 Outputs:
   StockTradingStateMachineArn:
     Description: Stock Trading State machine ARN

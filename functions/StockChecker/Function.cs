@@ -61,7 +61,7 @@ namespace StockChecker
             };
         }
 
-        public async Task<ApplicationService> CheckStockFunction(BookTable bookTable, ILambdaContext context)
+        public async Task<ApplicationService> CheckStockFunction(ApplicationService applicationService, ILambdaContext context)
         {
             //return new Dictionary<string, AttributeValue>{
             //    {
@@ -76,7 +76,7 @@ namespace StockChecker
                     TableName = table,
                     Key = new System.Collections.Generic.Dictionary<string, AttributeValue>
                     {
-                        { "bookId", new AttributeValue { S = bookTable.bookId} }
+                        { "bookId", new AttributeValue { S = applicationService.bookTable.bookId} }
                     }
                 };
 
@@ -99,24 +99,24 @@ namespace StockChecker
                     TableName = table,
                     KeyConditionExpression = "bookId = :v_Id",
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue> {
-                    {":v_Id", new AttributeValue { S =  bookTable.bookId }}}
+                    {":v_Id", new AttributeValue { S =  applicationService.bookTable.bookId }}}
                 };
                 if (_dynamoDB == null)
                     throw new ArgumentNullException(nameof(_dynamoDB));
                 else
                 {
                     context.Logger.LogLine($"_dynamoDB: {_dynamoDB.ToString()}");
-                    var response2 = await _dynamoDB.GetItemAsync(getItemRequest);
-                    var item2 = response2.Item;
-                    context.Logger.LogLine($"item2.Values.Count: {item2.Values.Count}");
-                    Dictionary<string, AttributeValue>.ValueCollection.Enumerator items = item2.Values.GetEnumerator();
-                    while (items.MoveNext())
-                    {
-                        // now empEnumerator.Current is the Employee instance without casting
-                        var emp = items.Current;
-                        string empName = emp.S;
-                        context.Logger.LogLine($"empName: {empName}");
-                    }
+                    //var response2 = await _dynamoDB.GetItemAsync(getItemRequest);
+                    //var item2 = response2.Item;
+                    //context.Logger.LogLine($"item2.Values.Count: {item2.Values.Count}");
+                    //Dictionary<string, AttributeValue>.ValueCollection.Enumerator items = item2.Values.GetEnumerator();
+                    //while (items.MoveNext())
+                    //{
+                    //    // now empEnumerator.Current is the Employee instance without casting
+                    //    var emp = items.Current;
+                    //    string empName = emp.S;
+                    //    context.Logger.LogLine($"empName: {empName}");
+                    //}
 
                 }
                 var response = await _dynamoDB.QueryAsync(request);
@@ -130,17 +130,10 @@ namespace StockChecker
                     throw new BookNotFoundException() { Source = "BookNotFound" };
                 }
                 var book = response.Items[0];
-                if (IsBookAvailable(Convert.ToInt32(response.Items[0]["quantity"].S), Convert.ToInt32(bookTable.quantity)))
+                if (IsBookAvailable(Convert.ToInt32(response.Items[0]["quantity"].S), Convert.ToInt32(applicationService.bookTable.quantity)))
                 {
-                    ApplicationService applicationService = new ApplicationService()
-                    {
-                        bookTable = new BookTable
-                        {
-                            bookId = bookTable.bookId,
-                            quantity = bookTable.quantity,
-                            price = response.Items[0]["price"].S
-                        }
-                    };
+                    applicationService.bookTable.price = response.Items[0]["price"].S;
+                        
                     return applicationService;
                 }
                 else

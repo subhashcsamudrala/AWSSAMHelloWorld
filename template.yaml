@@ -13,6 +13,9 @@ Resources:
       DefinitionSubstitutions:
         CheckInventoryArn: !GetAtt CheckInventory.Arn
         CalculateTotalArn: !GetAtt CalculateTotal.Arn
+        RedeemPointsArn: !GetAtt  RedeemPoints.Arn
+        BillCustomerArn: !GetAtt  BillCustomer.Arn
+        PrepareOrderArn: !GetAtt  PrepareOrder.Arn
       Events:
         HourlyTradingSchedule:
           Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
@@ -25,6 +28,14 @@ Resources:
             FunctionName: !Ref CheckInventory
         - LambdaInvokePolicy:
             FunctionName: !Ref CalculateTotal
+        - LambdaInvokePolicy:
+            FunctionName: !Ref RedeemPoints
+        - LambdaInvokePolicy:
+            FunctionName: !Ref BillCustomer     
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PrepareOrder       
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SQSWorker                                 
 
   CheckInventory:
     Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
@@ -40,6 +51,44 @@ Resources:
       CodeUri: ./functions/StockSeller/
       Handler: StockSeller::StockSeller.Function::CalculateTotalFunction
       Runtime: dotnetcore3.1
+      Timeout: 60      
+
+  RedeemPoints:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/StockSeller/
+      Handler: StockSeller::StockSeller.Function::RedeemPointsFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60    
+  
+  BillCustomer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/StockSeller/
+      Handler: StockSeller::StockSeller.Function::BillCustomerFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60  
+  
+  PrepareOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/StockSeller/
+      Handler: StockSeller::StockSeller.Function::RedeemPointsFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60  
+  
+  SQSWorker:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri:  ./functions/StockSeller/
+      Handler:  StockSeller::StockSeller.Function::SQSWorkerFunction
+      Runtime: dotnetcore3.1
+      Timeout: 60  
+      Events:
+          - SQS:
+              arn:aws:sqs:ap-southeast-2:746358375443:OrdersQueue
+          - batchSize:  1
+      
       
 Outputs:
   # StockTradingStateMachineHourlyTradingSchedule is an implicit Schedule event rule created out of Events key under Serverless::StateMachine

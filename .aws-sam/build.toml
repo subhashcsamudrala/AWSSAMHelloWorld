@@ -13,6 +13,6 @@ codeuri = "D:\\AWSProjects\\AWSsam\\FoodOrder\\functions\\StockSeller"
 runtime = "dotnetcore3.1"
 source_md5 = ""
 packagetype = "Zip"
-functions = ["CalculateTotal"]
+functions = ["CalculateTotal", "RedeemPoints", "BillCustomer", "PrepareOrder"]
 
 [layer_build_definitions]
